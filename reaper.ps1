@@ -1,12 +1,12 @@
 # Reaper prank. Harmless: fullscreen window, laugh from a hosted audio file, blackout, fake terminal, closes itself.
 # Nothing written to disk, no settings changed, no persistence.
 
-$LaughUrl        = 'https://raw.githubusercontent.com/Kingryno/reaper/main/Crypt_Keeper_Laugh.mp3'
+$LaughUrl        = 'https://raw.githubusercontent.com/Kingryno/reaper/main/laugh.wav'
 $LaughSeconds    = 6.5
 $BlackSeconds    = 4
 $FinaleSeconds   = 2
 
-Add-Type -AssemblyName System.Windows.Forms, PresentationCore
+Add-Type -AssemblyName System.Windows.Forms
 [Windows.Forms.Cursor]::Hide()
 
 $f = New-Object Windows.Forms.Form -Property @{ FormBorderStyle=0; WindowState=2; BackColor='Black'; TopMost=$true; ShowInTaskbar=$false }
@@ -18,17 +18,16 @@ $f.Show(); $f.Activate()
 $pump = { [Windows.Forms.Application]::DoEvents(); Start-Sleep -m 30 }
 $wait = { param($n) $t = Get-Date; while (((Get-Date) - $t).TotalSeconds -lt $n) { & $pump } }
 
-# Laugh (mp3 or wav over HTTPS) with a flicker on the skull while it plays
-$m = New-Object Windows.Media.MediaPlayer
-$m.Volume = 1.0
-$m.Open($LaughUrl)
-$m.Play()
+# Laugh (WAV over HTTPS) with a flicker on the skull while it plays
+$p = New-Object System.Media.SoundPlayer $LaughUrl
+try { $p.Load() } catch { }
+$p.Play()
 $t = Get-Date
 while (((Get-Date) - $t).TotalSeconds -lt $LaughSeconds) {
     $skull.ForeColor = if ((Get-Random -Max 10) -lt 2) { 'DimGray' } else { 'Silver' }
     & $pump
 }
-$m.Stop(); $m.Close()
+$p.Stop()
 
 # Blackout
 $skull.Hide(); $tag.Hide()
